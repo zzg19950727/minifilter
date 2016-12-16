@@ -1,11 +1,17 @@
-[Version]
-signature   = "$Windows NT$"
-Class       = "ActivityMonitor"                         ;This is determined by the work this filter driver does
-ClassGuid   = {b86dff51-a31e-4bac-b3cf-e8cfe75c9fc2}    ;This value is determined by the Class
-Provider    = %Msft%
-DriverVer   = 06/16/2007,1.0.0.3
-CatalogFile = crypt.cat
+;;;
+;;; crypt
+;;;
 
+[Version]
+Signature   = "$Windows NT$"
+; TODO - Change the Class and ClassGuid to match the Load Order Group value, see http://msdn.microsoft.com/en-us/windows/hardware/gg462963
+; Class       = "ActivityMonitor"                         ;This is determined by the work this filter driver does
+; ClassGuid   = {b86dff51-a31e-4bac-b3cf-e8cfe75c9fc2}    ;This value is determined by the Load Order Group value
+Class = "Encryption"
+ClassGuid = {b86dff51-a31e-4bac-b3cf-e8cfe75c9fc2}
+Provider    = %ManufacturerName%
+DriverVer   = 12/10/2016,1.0.0.0
+CatalogFile = crypt.cat
 
 [DestinationDirs]
 DefaultDestDir          = 12
@@ -30,7 +36,7 @@ AddService          = %ServiceName%,,MiniFilter.Service
 DelFiles   = MiniFilter.DriverFiles
 
 [DefaultUninstall.Services]
-DelService = crypt,0x200      ;Ensure service is stopped before deleting
+DelService = %ServiceName%,0x200      ;Ensure service is stopped before deleting
 
 ;
 ; Services Section
@@ -42,10 +48,11 @@ Description      = %ServiceDescription%
 ServiceBinary    = %12%\%DriverName%.sys        ;%windir%\system32\drivers\
 Dependencies     = "FltMgr"
 ServiceType      = 2                            ;SERVICE_FILE_SYSTEM_DRIVER
-;StartType        = 0                           ;SERVICE_BOOT_START
 StartType        = 3                            ;SERVICE_DEMAND_START
 ErrorControl     = 1                            ;SERVICE_ERROR_NORMAL
-LoadOrderGroup   = "FSFilter Encryption"
+; TODO - Change the Load Order Group value, see http://connect.microsoft.com/site221/content/content.aspx?ContentID=2512
+; LoadOrderGroup = "FSFilter Activity Monitor"
+LoadOrderGroup = "FSFilter Encryption"
 AddReg           = MiniFilter.AddRegistry
 
 ;
@@ -53,7 +60,9 @@ AddReg           = MiniFilter.AddRegistry
 ;
 
 [MiniFilter.AddRegistry]
-HKR,"Instances","DefaultInstance",0x00000000,%Instance1.Name%
+HKR,,"DebugFlags",0x00010001 ,0x0
+HKR,,"SupportedFeatures",0x00010001,0x3
+HKR,"Instances","DefaultInstance",0x00000000,%DefaultInstance%
 HKR,"Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
 HKR,"Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
 
@@ -75,14 +84,16 @@ crypt.sys = 1,,
 ;;
 
 [Strings]
-Msft                    = "HUST"
+; TODO - Add your manufacturer
+ManufacturerName        = "Hust"
 ServiceDescription      = "crypt Mini-Filter Driver"
 ServiceName             = "crypt"
 DriverName              = "crypt"
 DiskId1                 = "crypt Device Installation Disk"
 
 ;Instances specific information.
+DefaultInstance         = "crypt Instance"
 Instance1.Name          = "crypt Instance"
-Instance1.Altitude      = "141000"
-Instance1.Flags         = 0x0          ; allow automatic attachments
-
+; TODO - Change the altitude value, see http://connect.microsoft.com/site221/content/content.aspx?ContentID=2512
+Instance1.Altitude       = "141000"
+Instance1.Flags         = 0x0              ; Allow all attachments
